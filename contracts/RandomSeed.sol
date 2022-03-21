@@ -2,11 +2,15 @@
 
 pragma solidity ^0.8.7;
 
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
-contract VRFv2SubscriptionManager is VRFConsumerBaseV2 {
+contract RandomSeed is VRFConsumerBaseV2, AccessControl {
+    bytes32 public constant RANDOM_REQUESTER_ROLE = keccak256("RANDOM_REQUESTER_ROLE");
+
     VRFCoordinatorV2Interface COORDINATOR;
     LinkTokenInterface LINKTOKEN;
 
@@ -30,41 +34,101 @@ contract VRFv2SubscriptionManager is VRFConsumerBaseV2 {
     // The default is 3, but you can set this higher.
     uint16 requestConfirmations = 3;
 
-    // For this example, retrieve 2 random values in one request.
+    // For this example, retrieve 1 random values in one request.
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-    uint32 numWords = 2;
+    uint32 constant numWords = 1;
 
     // Storage parameters
-    uint256[] public s_randomWords;
-    uint256 public s_requestId;
     uint64 public s_subscriptionId;
-    address s_owner;
 
-    constructor() VRFConsumerBaseV2(vrfCoordinator) {
-        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
-        LINKTOKEN = LinkTokenInterface(link_token_contract);
-        s_owner = msg.sender;
-        //Create a new subscription when you deploy the contract.
-        createNewSubscription();
+    struct RandomRequest {
+        uint32 chainId; //  4 Bytes
+        uint48 requestTime; //  6 Bytes
+        uint48 scheduledTime; //  6 Bytes
+        uint48 fullFilledTime; //  6 Bytes
+        uint80 spare; // 10 Bytes
+        uint256 requestId; // 32 Bytes
+        uint256 randomNumber; // 32 Bytes
     }
 
-    // Assumes the subscription is funded sufficiently.
-    function requestRandomWords() external onlyOwner {
-        // Will revert if subscription is not set and funded.
-        s_requestId = COORDINATOR.requestRandomWords(
+    mapping(uint256 => RandomRequest) public randomRequests; // chainId + contract address => RandomRequest
+    mapping(uint256 => uint256) public requestId_to_contract; // requestid => chainId + contract address
+
+    modifier onlyOwner() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "caller has not admin role");
+        _;
+    }
+
+    modifier onlyRandomRequesterRole() {
+        require(hasRole(RANDOM_REQUESTER_ROLE, msg.sender), "caller has not RandomRequesterRole");
+        _;
+    }
+
+    /**
+     * @dev CONSTRUCTOR
+     */
+
+    constructor() VRFConsumerBaseV2(vrfCoordinator) {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(RANDOM_REQUESTER_ROLE, msg.sender);
+        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
+        LINKTOKEN = LinkTokenInterface(link_token_contract);
+        createNewSubscription(); // Create a new subscription when you deploy the contract.
+    }
+
+    /**
+     * @dev map a chainID and a contract address to a uint256
+     * @param _chainId of blockchain where contract is deployed
+     * @param _contractAddress contract address
+     */
+    function chainIdAddressToUint256(uint32 _chainId, address _contractAddress) public pure returns (uint256) {
+        return (uint256(_chainId) << 160) | uint256(uint160(_contractAddress));
+    }
+
+    /**
+     * @dev Request a random number from Chainlink VRF Oracle
+     * @dev Assumes the subscription is funded sufficiently.
+     * @dev Will revert if subscription is not set and funded.
+     * @param _chainId of the blockchain where the corresponding contract is deployed
+     * @param _contractAddress which we want the random number assign to
+     */
+    function requestRandomWords(uint32 _chainId, address _contractAddress) external onlyRandomRequesterRole {
+        // TODO - update access rights !!
+
+        uint256 id = chainIdAddressToUint256(_chainId, _contractAddress);
+        require(randomRequests[id].requestId == 0, "random number already requested");
+
+        uint256 requestId = COORDINATOR.requestRandomWords(
             keyHash,
             s_subscriptionId,
             requestConfirmations,
             callbackGasLimit,
             numWords
         );
+
+        randomRequests[id].chainId = _chainId;
+        randomRequests[id].requestTime = uint48(block.timestamp);
+        randomRequests[id].requestId = requestId;
+        requestId_to_contract[requestId] = id;
     }
 
-    function fulfillRandomWords(
-        uint256, /* requestId */
-        uint256[] memory randomWords
-    ) internal override {
-        s_randomWords = randomWords;
+    /**
+     * @dev Chainlink VRF oracle will call this function to deliver the random number
+     */
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
+        uint256 id = requestId_to_contract[requestId];
+        randomRequests[id].randomNumber = randomWords[0];
+        randomRequests[id].fullFilledTime = uint48(block.timestamp);
+    }
+
+    function getRandomNumber(uint32 _chainId, address _contractAddress) public view returns (uint256) {
+        uint256 id = chainIdAddressToUint256(_chainId, _contractAddress);
+        return randomRequests[id].randomNumber;
+    }
+
+    function getScheduleRequest(uint32 _chainId, address _contractAddress) public view returns (RandomRequest memory) {
+        uint256 id = chainIdAddressToUint256(_chainId, _contractAddress);
+        return randomRequests[id];
     }
 
     // Create a new subscription when the contract is initially deployed.
@@ -83,18 +147,18 @@ contract VRFv2SubscriptionManager is VRFConsumerBaseV2 {
         LINKTOKEN.transferAndCall(address(COORDINATOR), amount, abi.encode(s_subscriptionId));
     }
 
+    // Add a consumer contract to the subscription.
     function addConsumer(address consumerAddress) external onlyOwner {
-        // Add a consumer contract to the subscription.
         COORDINATOR.addConsumer(s_subscriptionId, consumerAddress);
     }
 
+    // Remove a consumer contract from the subscription.
     function removeConsumer(address consumerAddress) external onlyOwner {
-        // Remove a consumer contract from the subscription.
         COORDINATOR.removeConsumer(s_subscriptionId, consumerAddress);
     }
 
+    // Cancel the subscription and send the remaining LINK to a wallet address.
     function cancelSubscription(address receivingWallet) external onlyOwner {
-        // Cancel the subscription and send the remaining LINK to a wallet address.
         COORDINATOR.cancelSubscription(s_subscriptionId, receivingWallet);
         s_subscriptionId = 0;
     }
@@ -103,10 +167,5 @@ contract VRFv2SubscriptionManager is VRFConsumerBaseV2 {
     // 1000000000000000000 = 1 LINK
     function withdraw(uint256 amount, address to) external onlyOwner {
         LINKTOKEN.transfer(to, amount);
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == s_owner);
-        _;
     }
 }
