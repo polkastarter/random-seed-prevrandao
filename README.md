@@ -33,13 +33,15 @@ Request a random number from a Chainlink VRF oracle.
 
 Actually, both numbers could be anything, they are just combined to allow the mapping from a contract to one random number.
 
+However, for each chainID + contractAddress combination only once a random number can be requested.
+
 ### getRandomNumber(uint32 \_chainId, address \_contractAddress) returns uint256
 
 using the same parameter a for `requestRandomWords`, about 1-2 minutes later, the 256 Bit random number can be read
 
 ### getScheduleRequest(uint32 \_chainId, address \_contractAddress) returns RandomRequest
 
-Same as `getRandomNumber` but returns a struct with all request details.
+Same as `getRandomNumber`, but returns a struct with all request details.
 
 ```solidity
 struct RandomRequest {
@@ -47,12 +49,45 @@ struct RandomRequest {
   uint48 requestTime; //  6 Bytes
   uint48 scheduledTime; //  6 Bytes
   uint48 fullFilledTime; //  6 Bytes
-  uint80 spare; // 10 Bytes
+  uint80 spare; // 10 Bytes <<< will be removed in next version
   uint256 requestId; // 32 Bytes
   uint256 randomNumber; // 32 Bytes
 }
 
 ```
+
+## Deployments
+
+### Rinkeby
+
+v1.0.0-beta - commit 4a408aa
+
+address : 0x035AFCA4f12E2192bcF7BD51d492024a98F2fA56
+
+https://rinkeby.etherscan.io/address/0x035afca4f12e2192bcf7bd51d492024a98f2fa56#readContract
+
+The first request for a random number has been made using the values :
+
+- chainID = 1
+- address = 0x0000000000000000000000000000000000000002
+
+The result is :
+
+```
+
+[ getScheduleRequest(uint32,address) method Response ]
+    tuple :  1
+  1647857440
+  0
+  1647857500
+  0
+  67284163834706690804897838002596552289500777014432640353358695938501308902540
+  68033276683754877228236908923553305972045273191801726143099600167895822661432
+```
+
+The last number in the struct is the random number which can by itself requested with `getRandomNumber` returning
+
+` 68033276683754877228236908923553305972045273191801726143099600167895822661432`
 
 ## Project Setup
 
