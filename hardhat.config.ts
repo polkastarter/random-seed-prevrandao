@@ -2,6 +2,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
+import "hardhat-abi-exporter";
 import "solidity-coverage";
 
 import "./tasks/accounts";
@@ -63,6 +64,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
+
   etherscan: {
     apiKey: {
       arbitrumOne: process.env.ARBISCAN_API_KEY,
@@ -75,12 +77,23 @@ const config: HardhatUserConfig = {
       rinkeby: process.env.ETHERSCAN_API_KEY,
     },
   },
+
   gasReporter: {
     currency: "USD",
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
     src: "./contracts",
   },
+
+  abiExporter: {
+    path: "./abi",
+    runOnCompile: true,
+    clear: true,
+    flat: true,
+    spacing: 2,
+    pretty: false,
+  },
+
   networks: {
     hardhat: {
       accounts: {
@@ -97,14 +110,16 @@ const config: HardhatUserConfig = {
     "polygon-mumbai": getChainConfig("polygon-mumbai"),
     rinkeby: getChainConfig("rinkeby"),
   },
+
   paths: {
     artifacts: "./artifacts",
     cache: "./cache",
     sources: "./contracts",
     tests: "./test",
   },
+
   solidity: {
-    version: "0.8.12",
+    version: "0.8.13",
     settings: {
       metadata: {
         // Not including the metadata hash
@@ -119,6 +134,7 @@ const config: HardhatUserConfig = {
       },
     },
   },
+
   typechain: {
     outDir: "src/types",
     target: "ethers-v5",
