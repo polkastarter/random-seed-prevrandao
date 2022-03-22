@@ -42,17 +42,17 @@ contract RandomSeed is VRFConsumerBaseV2, AccessControl {
     uint64 public s_subscriptionId;
 
     struct RandomRequest {
-        uint32 chainId; //  4 Bytes
+        // uint32 chainId; //  4 Bytes
         uint48 requestTime; //  6 Bytes
         uint48 scheduledTime; //  6 Bytes
         uint48 fullFilledTime; //  6 Bytes
-        uint80 spare; // 10 Bytes
         uint256 requestId; // 32 Bytes
         uint256 randomNumber; // 32 Bytes
     }
 
-    mapping(uint256 => RandomRequest) public randomRequests; // chainId + contract address => RandomRequest
-    mapping(uint256 => uint256) public requestId_to_contract; // requestid => chainId + contract address
+    mapping(bytes32 => RandomRequest) public randomRequests; // projectName => RandomRequest
+    mapping(uint256 => bytes32) public requestId_to_contract; // requestid => chainId + projectName
+    bytes32[] public randomRequestsList;
 
     modifier onlyOwner() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "caller has not admin role");
@@ -85,18 +85,28 @@ contract RandomSeed is VRFConsumerBaseV2, AccessControl {
         return (uint256(_chainId) << 160) | uint256(uint160(_contractAddress));
     }
 
+    function bytesToBytes32(bytes memory source) private pure returns (bytes32 result) {
+        if (source.length == 0) {
+            return 0x0;
+        }
+        assembly {
+            result := mload(add(source, 32))
+        }
+    }
+
+    function stringToBytes32(string memory projectNameString) public pure returns (bytes32) {
+        return bytes32(bytes(projectNameString));
+    }
+
     /**
      * @dev Request a random number from Chainlink VRF Oracle
      * @dev Assumes the subscription is funded sufficiently.
      * @dev Will revert if subscription is not set and funded.
-     * @param _chainId of the blockchain where the corresponding contract is deployed
-     * @param _contractAddress which we want the random number assign to
+     * @param projectNameString name of project
      */
-    function requestRandomWords(uint32 _chainId, address _contractAddress) external onlyRandomRequesterRole {
-        // TODO - update access rights !!
-
-        uint256 id = chainIdAddressToUint256(_chainId, _contractAddress);
-        require(randomRequests[id].requestId == 0, "random number already requested");
+    function requestRandomWords(string memory projectNameString) external onlyRandomRequesterRole {
+        bytes32 projectName = stringToBytes32(projectNameString);
+        require(randomRequests[projectName].requestId == 0, "random number already requested");
 
         uint256 requestId = COORDINATOR.requestRandomWords(
             keyHash,
@@ -106,29 +116,29 @@ contract RandomSeed is VRFConsumerBaseV2, AccessControl {
             numWords
         );
 
-        randomRequests[id].chainId = _chainId;
-        randomRequests[id].requestTime = uint48(block.timestamp);
-        randomRequests[id].requestId = requestId;
-        requestId_to_contract[requestId] = id;
+        randomRequests[projectName].requestTime = uint48(block.timestamp);
+        randomRequests[projectName].requestId = requestId;
+        requestId_to_contract[requestId] = projectName;
+        randomRequestsList.push(projectName);
     }
 
     /**
      * @dev Chainlink VRF oracle will call this function to deliver the random number
      */
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
-        uint256 id = requestId_to_contract[requestId];
-        randomRequests[id].randomNumber = randomWords[0];
-        randomRequests[id].fullFilledTime = uint48(block.timestamp);
+        bytes32 projectName = requestId_to_contract[requestId];
+        randomRequests[projectName].randomNumber = randomWords[0];
+        randomRequests[projectName].fullFilledTime = uint48(block.timestamp);
     }
 
-    function getRandomNumber(uint32 _chainId, address _contractAddress) public view returns (uint256) {
-        uint256 id = chainIdAddressToUint256(_chainId, _contractAddress);
-        return randomRequests[id].randomNumber;
+    function getRandomNumber(string memory projectNameString) public view returns (uint256) {
+        bytes32 projectName = stringToBytes32(projectNameString);
+        return randomRequests[projectName].randomNumber;
     }
 
-    function getScheduleRequest(uint32 _chainId, address _contractAddress) public view returns (RandomRequest memory) {
-        uint256 id = chainIdAddressToUint256(_chainId, _contractAddress);
-        return randomRequests[id];
+    function getScheduleRequest(string memory projectNameString) public view returns (RandomRequest memory) {
+        bytes32 projectName = stringToBytes32(projectNameString);
+        return randomRequests[projectName];
     }
 
     // Create a new subscription when the contract is initially deployed.
