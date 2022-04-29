@@ -37,7 +37,7 @@ However, for each chainID + contractAddress combination only once a random numbe
 
 ### getRandomNumber(uint32 \_chainId, address \_contractAddress) returns uint256
 
-using the same parameter a for `requestRandomWords`, about 1-2 minutes later, the 256 Bit random number can be read
+Using the same parameter as for `requestRandomWords`, about 1-2 minutes later, the 256 Bit random number can be read
 
 ### getScheduleRequest(uint32 \_chainId, address \_contractAddress) returns RandomRequest
 
@@ -60,30 +60,24 @@ struct RandomRequest {
 
 ### Rinkeby
 
-v1.0.0-beta - commit 4a408aa
+v1.0.0
 
-address : 0x035AFCA4f12E2192bcF7BD51d492024a98F2fA56
+address : 0xcfAac08133da18ba08C67099E97078A7481b4b25
 
-https://rinkeby.etherscan.io/address/0x035afca4f12e2192bcf7bd51d492024a98f2fa56#readContract
+https://rinkeby.etherscan.io/address/0xcfaac08133da18ba08c67099e97078a7481b4b25#writeContract
 
-The first request for a random number has been made using the values :
-
-- chainID = 1
-- address = 0x0000000000000000000000000000000000000002
-
-The result is :
-
-```
+The result of a request looks like this :
 
 [ getScheduleRequest(uint32,address) method Response ]
-    tuple :  1
-  1647857440
-  0
-  1647857500
-  0
-  67284163834706690804897838002596552289500777014432640353358695938501308902540
-  68033276683754877228236908923553305972045273191801726143099600167895822661432
-```
+tuple : 1
+1647857440
+0
+1647857500
+0
+67284163834706690804897838002596552289500777014432640353358695938501308902540
+68033276683754877228236908923553305972045273191801726143099600167895822661432
+
+````
 
 The last number in the struct is the random number which can by itself requested with `getRandomNumber` returning
 
@@ -110,7 +104,7 @@ Then, proceed with installing dependencies:
 
 ```sh
 yarn install
-```
+````
 
 ### Compile
 
