@@ -84,6 +84,7 @@ https://rinkeby.etherscan.io/address/0xcfaac08133da18ba08c67099e97078a7481b4b25#
 
 The result of a request looks like this :
 
+```
 [ getScheduleRequest(uint32,address) method Response ]
 tuple : 1
 1647857440
@@ -93,7 +94,7 @@ tuple : 1
 67284163834706690804897838002596552289500777014432640353358695938501308902540
 68033276683754877228236908923553305972045273191801726143099600167895822661432
 
-````
+```
 
 The last number in the struct is the random number which can by itself requested with `getRandomNumber` returning
 
@@ -120,7 +121,7 @@ Then, proceed with installing dependencies:
 
 ```sh
 yarn install
-````
+```
 
 ### Compile
 
