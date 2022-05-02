@@ -82,7 +82,7 @@ address : 0xcfAac08133da18ba08C67099E97078A7481b4b25
 
 https://rinkeby.etherscan.io/address/0xcfaac08133da18ba08c67099e97078a7481b4b25#writeContract
 
-The result of a request looks like this (Example `diogo-project`) :
+The result of a random number request, which can be retrieved (after ~ 1-2 minutes) with `getScheduleRequest` looks like this (Example `diogo-project`) :
 
 ```
 tuple :
