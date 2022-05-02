@@ -2,54 +2,70 @@
 
 ## Overview
 
-RandomSeed is a contract to request a 256 Bit random number from a Chainlink VRF oracle and assign it to a contract address with a chain id.
+RandomSeed is a contract to request a 256 Bit random number from a Chainlink VRF oracle for a provided project name.
+
+Chainlink VRF (Verifiable Random Function) is a provably fair and verifiable random number generator (RNG) that enables smart contracts to access random values without compromising security or usability.
+
+https://docs.chain.link/docs/chainlink-vrf
 
 ## Setup
 
-Only accounts with `RANDOM_REQUESTER_ROLE` can request a random number.
+In order to be able to request a random number from the Chainling VRF, a subscription for that service has to be funded upfront.
 
-During deployment, the contract get a subscriptionId assigned, which can be requested by calling the function `s_subscriptionId()`.
+1. During deployment, the contract get a subscriptionId assigned, which can be requested by calling the function `s_subscriptionId()`.
 
-Chainlink provides an management UI for the subscriptions :
+This function can be called using the (auto generated) Web UI of etherscan.
+
+For the contract deployed on the Rinkeby testnet, it look like this :
+
+https://rinkeby.etherscan.io/address/0xcfaac08133da18ba08c67099e97078a7481b4b25#readContract
+
+2. Chainlink provides an management Web UI for the subscriptions :
 
 https://vrf.chain.link
 
-Before a request for random number can be made, the subscription needs to be funded:
+To access the admin interface for a certain subscription, access the link with `subscriptionId` at the end, i.e.:
 
-- send LINK to contract
-- call `topUpSubscription(amount)`
+https://vrf.chain.link/rinkeby/1718
 
-One random number request will cost ~0.3 LINK
+3. To fund the subscription, the [Add Funds] button within the admin interface can be used.
+
+Alternatively, this can be done (programmatically) by :
+
+- sending LINK to contract
+- calling `topUpSubscription(amount)`
+
+One random number request will cost ~ 0.3 ... 0.4 $LINK.
+
+## Related Chainlink documentation
+
+https://www.youtube.com/watch?v=rdJ5d8j1RCg
+
+https://docs.chain.link/docs/get-a-random-number
 
 ## Functions
 
-### requestRandomWords(uint32 \_chainId, address \_contractAddress)
+The following functions are available to request and later read a random number :
+
+### requestRandomWords(string projectNameString)
 
 Request a random number from a Chainlink VRF oracle.
 
-`_chainId` of the blockchain where the corresponding contract is deployed
+Only accounts with `RANDOM_REQUESTER_ROLE` can request a random number.
 
-`_contractAddress` contract which we want the random number assign to
+### getRandomNumber(string projectNameString) public view returns (uint256)
 
-Actually, both numbers could be anything, they are just combined to allow the mapping from a contract to one random number.
+Using the same parameter as for `requestRandomWords`, about 1-2 minutes later, the 256 Bit random number can be read.
 
-However, for each chainID + contractAddress combination only once a random number can be requested.
-
-### getRandomNumber(uint32 \_chainId, address \_contractAddress) returns uint256
-
-Using the same parameter as for `requestRandomWords`, about 1-2 minutes later, the 256 Bit random number can be read
-
-### getScheduleRequest(uint32 \_chainId, address \_contractAddress) returns RandomRequest
+### getScheduleRequest(string projectNameString) public view returns (RandomRequest)
 
 Same as `getRandomNumber`, but returns a struct with all request details.
 
 ```solidity
 struct RandomRequest {
-  uint32 chainId; //  4 Bytes
   uint48 requestTime; //  6 Bytes
   uint48 scheduledTime; //  6 Bytes
   uint48 fullFilledTime; //  6 Bytes
-  uint80 spare; // 10 Bytes <<< will be removed in next version
   uint256 requestId; // 32 Bytes
   uint256 randomNumber; // 32 Bytes
 }

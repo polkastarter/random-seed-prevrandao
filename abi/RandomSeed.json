@@ -174,14 +174,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint32",
-        "name": "_chainId",
-        "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "_contractAddress",
-        "type": "address"
+        "internalType": "string",
+        "name": "projectNameString",
+        "type": "string"
       }
     ],
     "name": "getRandomNumber",
@@ -217,25 +212,15 @@
   {
     "inputs": [
       {
-        "internalType": "uint32",
-        "name": "_chainId",
-        "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "_contractAddress",
-        "type": "address"
+        "internalType": "string",
+        "name": "projectNameString",
+        "type": "string"
       }
     ],
     "name": "getScheduleRequest",
     "outputs": [
       {
         "components": [
-          {
-            "internalType": "uint32",
-            "name": "chainId",
-            "type": "uint32"
-          },
           {
             "internalType": "uint48",
             "name": "requestTime",
@@ -250,11 +235,6 @@
             "internalType": "uint48",
             "name": "fullFilledTime",
             "type": "uint48"
-          },
-          {
-            "internalType": "uint80",
-            "name": "spare",
-            "type": "uint80"
           },
           {
             "internalType": "uint256",
@@ -320,18 +300,13 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
+        "internalType": "bytes32",
         "name": "",
-        "type": "uint256"
+        "type": "bytes32"
       }
     ],
     "name": "randomRequests",
     "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "chainId",
-        "type": "uint32"
-      },
       {
         "internalType": "uint48",
         "name": "requestTime",
@@ -348,11 +323,6 @@
         "type": "uint48"
       },
       {
-        "internalType": "uint80",
-        "name": "spare",
-        "type": "uint80"
-      },
-      {
         "internalType": "uint256",
         "name": "requestId",
         "type": "uint256"
@@ -361,6 +331,25 @@
         "internalType": "uint256",
         "name": "randomNumber",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "randomRequestsList",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -426,9 +415,9 @@
     "name": "requestId_to_contract",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "bytes32",
         "name": "",
-        "type": "uint256"
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -437,14 +426,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint32",
-        "name": "_chainId",
-        "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "_contractAddress",
-        "type": "address"
+        "internalType": "string",
+        "name": "projectNameString",
+        "type": "string"
       }
     ],
     "name": "requestRandomWords",
@@ -481,6 +465,25 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "projectNameString",
+        "type": "string"
+      }
+    ],
+    "name": "stringToBytes32",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   },
   {
