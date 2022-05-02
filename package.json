@@ -1,6 +1,6 @@
 {
-  "name": "scheduled-random",
-  "description": "Generate a random number using Chainlink oracles",
+  "name": "random-seed",
+  "description": "Generate a random number using Chainlink VRF oracle",
   "version": "1.0.0",
   "author": {
     "name": "Sven Meyer",
@@ -89,6 +89,6 @@
   },
   "dependencies": {
     "@chainlink/contracts": "^0.4.0",
-    "@openzeppelin/contracts": "^4.5.0"
+    "@openzeppelin/contracts": "^4.6.0"
   }
 }
