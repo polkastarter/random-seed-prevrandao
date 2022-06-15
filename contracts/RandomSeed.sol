@@ -14,35 +14,40 @@ contract RandomSeed is VRFConsumerBaseV2, AccessControl {
     VRFCoordinatorV2Interface COORDINATOR;
     LinkTokenInterface LINKTOKEN;
 
-    // Rinkeby coordinator. For other networks,
-    // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    address vrfCoordinator = 0x6168499c0cFfCaCD319c818142124B7A15E857ab;
-
-    // Rinkeby LINK token contract. For other networks, see
+    // VRF coordinator. For other networks see ...
     // https://docs.chain.link/docs/vrf-contracts/#configurations
-    address link_token_contract = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709;
+    // address public constant vrfCoordinator = 0x6168499c0cFfCaCD319c818142124B7A15E857ab; // Rinkeby
+    address public constant vrfCoordinator = 0x271682DEB8C4E0901D1a1550aD2e64D568E69909; // Eth mainnet
+
+    // LINK token contract. For other networks, see ...
+    // https://docs.chain.link/docs/vrf-contracts/#configurations
+    // address public constant link_token_contract = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709; // Rinkeby
+    address public constant link_token_contract = 0x514910771AF9Ca656af840dff83E8264EcF986CA; // Eth mainnet
 
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    bytes32 keyHash = 0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc;
+    // bytes32 public keyHash = 0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc; // Rinkeby
+    bytes32 public keyHash = 0x8af398995b04c28e9951adb9721ef74c74f93e6a478f39e7e0777be13527e7ef; // Eth mainnet  200 gwei
+    //  bytes32 public keyHash = 0xff8dedfbfa60af186cf3c830acbc32c05aae823045ae5ea7da1e45fbfaba4f92; // Eth mainnet  500 gwei
+    //  bytes32 public keyHash = 0x9fe0eebf5e446e3c998ec9bb19951541aee00bb90ea201ae456421a2ded86805; // Eth mainnet 1000 gwei
 
     // A reasonable default is 100000, but this value could be different
     // on other networks.
-    uint32 callbackGasLimit = 100000;
+    uint32 public constant callbackGasLimit = 100000;
 
     // The default is 3, but you can set this higher.
-    uint16 requestConfirmations = 3;
+    uint16 public constant requestConfirmations = 3;
 
-    // For this example, retrieve 1 random values in one request.
+    // Retrieve 1 random values in one request.
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-    uint32 constant numWords = 1;
+    uint32 public constant numWords = 1;
 
     // Storage parameters
     uint64 public s_subscriptionId;
 
     struct RandomRequest {
-        // uint32 chainId; //  4 Bytes
+        // uint32 chainId;     //  4 Bytes
         uint48 requestTime; //  6 Bytes
         uint48 scheduledTime; //  6 Bytes
         uint48 fullFilledTime; //  6 Bytes
@@ -73,7 +78,7 @@ contract RandomSeed is VRFConsumerBaseV2, AccessControl {
         _setupRole(RANDOM_REQUESTER_ROLE, msg.sender);
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
         LINKTOKEN = LinkTokenInterface(link_token_contract);
-        createNewSubscription(); // Create a new subscription when you deploy the contract.
+        // createNewSubscription(); // Create a new subscription when you deploy the contract.
     }
 
     /**
@@ -142,13 +147,23 @@ contract RandomSeed is VRFConsumerBaseV2, AccessControl {
     }
 
     // Create a new subscription when the contract is initially deployed.
-    function createNewSubscription() private onlyOwner {
+    function createNewSubscription() public onlyOwner {
         // Create a subscription with a new subscription ID.
         address[] memory consumers = new address[](1);
         consumers[0] = address(this);
         s_subscriptionId = COORDINATOR.createSubscription();
         // Add this contract as a consumer of its own subscription.
         COORDINATOR.addConsumer(s_subscriptionId, consumers[0]);
+    }
+
+    // set or update keyHash
+    function setKeyHash(bytes32 _keyHash) external onlyOwner {
+        keyHash = _keyHash;
+    }
+
+    // update subscriptionId
+    function setSubscriptionId(uint64 _s_subscriptionId) external onlyOwner {
+        s_subscriptionId = _s_subscriptionId;
     }
 
     // Assumes this contract owns link.
