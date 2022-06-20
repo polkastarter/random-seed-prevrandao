@@ -187,10 +187,23 @@ $ yarn clean
 
 ### Deploy
 
-Deploy the contracts to Hardhat Network:
+## Deployment
 
-```sh
-$ yarn deploy --greeting "Bonjour, le monde!"
+### Deployment with Verification
+
+In `package.json` file, we have the deploy script defined.
+We can pass `network` argument as defined inside hardhat config. Before running the script, we need to set proper env vars as stated in the .env.sample file.
+
+For `rinkeby`: `yarn run deploy --network rinkeby`
+
+For `mainnet`: `yarn run deploy --network mainnet`
+
+It will automatically verify on etherscan as well.
+
+### Deploy contract via CLI providing a private key
+
+```
+PRIVATE_KEY=0xe15... yarn run deploy --network mainnet
 ```
 
 ## Syntax Highlighting
