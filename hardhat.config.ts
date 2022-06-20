@@ -18,8 +18,9 @@ dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 // Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC;
-if (!mnemonic) {
-  throw new Error("Please set your MNEMONIC in a .env file");
+const privateKey: string | undefined = process.env.PRIVATE_KEY;
+if (!mnemonic && !privateKey) {
+  throw new Error("Please set your MNEMONIC or PRIVATE_KEY in a .env file");
 }
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
@@ -28,56 +29,49 @@ if (!infuraApiKey) {
 }
 
 const chainIds = {
-  arbitrum: 42161,
+  arbitrumOne: 42161,
   avalanche: 43114,
   bsc: 56,
   hardhat: 31337,
   mainnet: 1,
   optimism: 10,
-  "polygon-mainnet": 137,
-  "polygon-mumbai": 80001,
+  polygon: 137,
   rinkeby: 4,
 };
 
-function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
-  let jsonRpcUrl: string;
-  switch (chain) {
-    case "avalanche":
-      jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc";
-      break;
-    case "bsc":
-      jsonRpcUrl = "https://bsc-dataseed1.binance.org";
-      break;
-    default:
-      jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
-  }
-  return {
+function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
+  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+
+  let networkUserConfig: NetworkUserConfig = {
     accounts: {
       count: 10,
       mnemonic,
       path: "m/44'/60'/0'/0",
     },
-    chainId: chainIds[chain],
-    url: jsonRpcUrl,
+    chainId: chainIds[network],
+    url,
   };
+
+  if (privateKey) {
+    networkUserConfig.accounts = [privateKey];
+  }
+
+  return networkUserConfig;
 }
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
-
   etherscan: {
     apiKey: {
-      arbitrumOne: process.env.ARBISCAN_API_KEY,
-      avalanche: process.env.SNOWTRACE_API_KEY,
-      bsc: process.env.BSCSCAN_API_KEY,
-      mainnet: process.env.ETHERSCAN_API_KEY,
-      optimisticEthereum: process.env.OPTIMISM_API_KEY,
-      polygon: process.env.POLYGONSCAN_API_KEY,
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-      rinkeby: process.env.ETHERSCAN_API_KEY,
+      // arbitrumOne: process.env.ARBSCAN_API_KEY,
+      // avalanche:   process.env.SNOWTRACE_API_KEY,
+      // bsc:         process.env.BSCSCAN_API_KEY,
+      mainnet: <string>process.env.ETHERSCAN_API_KEY ?? "BW3KZQR5YEKHCTRJJK4SMXUQNBQ41TKGID",
+      // optimisticEthereum: process.env.OPTIMISM_API_KEY,
+      // polygon:     process.env.POLYGONSCAN_API_KEY,
+      rinkeby: <string>process.env.ETHERSCAN_API_KEY ?? "BW3KZQR5YEKHCTRJJK4SMXUQNBQ41TKGID",
     },
   },
-
   gasReporter: {
     currency: "USD",
     enabled: process.env.REPORT_GAS ? true : false,
@@ -90,6 +84,7 @@ const config: HardhatUserConfig = {
     runOnCompile: true,
     clear: true,
     flat: true,
+    // only: [':ERC20$'],
     spacing: 2,
     pretty: false,
   },
@@ -101,13 +96,12 @@ const config: HardhatUserConfig = {
       },
       chainId: chainIds.hardhat,
     },
-    arbitrum: getChainConfig("arbitrum"),
+    arbitrumOne: getChainConfig("arbitrumOne"),
     avalanche: getChainConfig("avalanche"),
     bsc: getChainConfig("bsc"),
     mainnet: getChainConfig("mainnet"),
     optimism: getChainConfig("optimism"),
-    "polygon-mainnet": getChainConfig("polygon-mainnet"),
-    "polygon-mumbai": getChainConfig("polygon-mumbai"),
+    polygon: getChainConfig("polygon"),
     rinkeby: getChainConfig("rinkeby"),
   },
 
@@ -119,20 +113,51 @@ const config: HardhatUserConfig = {
   },
 
   solidity: {
-    version: "0.8.13",
-    settings: {
-      metadata: {
-        // Not including the metadata hash
-        // https://github.com/paulrberg/solidity-template/issues/31
-        bytecodeHash: "none",
+    compilers: [
+      {
+        version: "0.5.17",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
-      // Disable the optimizer when debugging
-      // https://hardhat.org/hardhat-network/#solidity-optimizer-support
-      optimizer: {
-        enabled: true,
-        runs: 800,
+      {
+        version: "0.6.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
-    },
+      {
+        version: "0.7.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      {
+        version: "0.8.15",
+        settings: {
+          metadata: {
+            // Not including the metadata hash
+            // https://github.com/paulrberg/solidity-template/issues/31
+            bytecodeHash: "none",
+          },
+          // You should disable the optimizer when debugging
+          // https://hardhat.org/hardhat-network/#solidity-optimizer-support
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    ],
   },
 
   typechain: {
