@@ -1,18 +1,15 @@
-import "@nomiclabs/hardhat-waffle";
-import "@nomiclabs/hardhat-etherscan";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
-import "hardhat-abi-exporter";
-import "solidity-coverage";
-
 import "./tasks/accounts";
 import "./tasks/deploy";
-
-import { resolve } from "path";
-
+import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-waffle";
+import "@typechain/hardhat";
 import { config as dotenvConfig } from "dotenv";
+import "hardhat-abi-exporter";
+import "hardhat-gas-reporter";
 import { HardhatUserConfig } from "hardhat/config";
 import { NetworkUserConfig } from "hardhat/types";
+import { resolve } from "path";
+import "solidity-coverage";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
@@ -42,7 +39,7 @@ const chainIds = {
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
 
-  let networkUserConfig: NetworkUserConfig = {
+  const networkUserConfig: NetworkUserConfig = {
     accounts: {
       count: 10,
       mnemonic,
@@ -61,17 +58,19 @@ function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
+
   etherscan: {
     apiKey: {
       // arbitrumOne: process.env.ARBSCAN_API_KEY,
       // avalanche:   process.env.SNOWTRACE_API_KEY,
       // bsc:         process.env.BSCSCAN_API_KEY,
-      mainnet: <string>process.env.ETHERSCAN_API_KEY ?? "BW3KZQR5YEKHCTRJJK4SMXUQNBQ41TKGID",
+      mainnet: process.env.ETHERSCAN_API_KEY || "",
       // optimisticEthereum: process.env.OPTIMISM_API_KEY,
       // polygon:     process.env.POLYGONSCAN_API_KEY,
-      rinkeby: <string>process.env.ETHERSCAN_API_KEY ?? "BW3KZQR5YEKHCTRJJK4SMXUQNBQ41TKGID",
+      rinkeby: process.env.ETHERSCAN_API_KEY || "",
     },
   },
+
   gasReporter: {
     currency: "USD",
     enabled: process.env.REPORT_GAS ? true : false,
@@ -142,7 +141,7 @@ const config: HardhatUserConfig = {
         },
       },
       {
-        version: "0.8.15",
+        version: "0.8.17",
         settings: {
           metadata: {
             // Not including the metadata hash
