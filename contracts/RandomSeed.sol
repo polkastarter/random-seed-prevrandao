@@ -76,11 +76,10 @@ contract RandomSeed is AccessControl {
         RandomRequest storage request = randomRequests[projectName];
 
         require(request.fulFilledBlocknumber == 0, "request already fulfilled");
-        uint256 blockNumberToBeUsed = request.requestId;
 
         // console.log("contract: block.number =", block.number);
 
-        if (blockNumberToBeUsed == 0) {
+        if (request.requestId == 0) {
             // first run, determine block number to be used
             request.requestTime = uint48(block.timestamp);
             request.requestId = uint48(block.number);
