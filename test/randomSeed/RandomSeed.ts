@@ -3,8 +3,8 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signe
 import { ethers } from "hardhat";
 
 import type { Signers } from "../types";
-import { shouldBehaveLikeGreeter } from "./Greeter.behavior";
-import { deployGreeterFixture } from "./Greeter.fixture";
+import { shouldBehaveLikeRandomSeed } from "./RandomSeed.behavior";
+import { deployRandomSeedFixture } from "./RandomSeed.fixture";
 
 describe("Unit tests", function () {
   before(async function () {
@@ -12,16 +12,17 @@ describe("Unit tests", function () {
 
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.admin = signers[0];
+    this.signers.user1 = signers[1];
 
     this.loadFixture = loadFixture;
   });
 
-  describe("Greeter", function () {
+  describe("RandomSeed", function () {
     beforeEach(async function () {
-      const { greeter } = await this.loadFixture(deployGreeterFixture);
-      this.greeter = greeter;
+      const { randomSeed } = await this.loadFixture(deployRandomSeedFixture);
+      this.randomSeed = randomSeed;
     });
 
-    shouldBehaveLikeGreeter();
+    shouldBehaveLikeRandomSeed();
   });
 });
