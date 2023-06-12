@@ -8,7 +8,8 @@ import {
 
 export function shouldBehaveLikeRandomSeed(): void {
 
-  const projectName: string = "Project-1";
+  const projectName: string = "Project-" + new Date().getTime();
+  console.log("projectName =", projectName);
   const blocksWait = 128;
   const blockTime = 15;
 

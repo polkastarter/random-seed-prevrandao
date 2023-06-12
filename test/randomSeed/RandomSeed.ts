@@ -25,5 +25,7 @@ describe("Unit tests", function () {
     });
 
     shouldBehaveLikeRandomSeed();
+    shouldBehaveLikeRandomSeed();
   });
+
 });
