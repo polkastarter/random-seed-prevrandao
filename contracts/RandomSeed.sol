@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -10,25 +10,25 @@ contract RandomSeed is AccessControl {
 
     bytes32 public constant RANDOM_REQUESTER_ROLE = keccak256("RANDOM_REQUESTER_ROLE");
 
-    // The default is 3, but you can set this higher.
-    uint16 public constant requestConfirmations = 3;
-
-    // Retrieve 1 random values in one request.
-    uint32 public constant numWords = 1;
-
     event ERC20TokensRemoved(address indexed tokenAddress, address indexed receiver, uint256 amount);
 
+    // variables to calculate wait time
+    uint public blocksWait = 128;
+    uint public blockTime = 15;
+
     struct RandomRequest {
-        // uint32 chainId;     //  4 Bytes
+        // uint16 chainId;     //  2 Bytes
         uint48 requestTime; //  6 Bytes
+        uint48 requestId; // 6 Bytes (blockNumber at request time)
+        uint48 scheduledBlock; //  6 Bytes
         uint48 scheduledTime; //  6 Bytes
         uint48 fullFilledTime; //  6 Bytes
-        uint256 requestId; // 32 Bytes
+        uint48 fullFilledBlock; //  6 Bytes
         uint256 randomNumber; // 32 Bytes
     }
 
     mapping(bytes32 => RandomRequest) public randomRequests; // projectName => RandomRequest
-    mapping(uint256 => bytes32) public requestId_to_contract; // requestid => chainId + projectName
+    // mapping(uint256 => bytes32) public requestId_to_contract; // requestid => chainId + projectName
     bytes32[] public randomRequestsList;
 
     modifier onlyOwner() {
@@ -71,14 +71,28 @@ contract RandomSeed is AccessControl {
      */
     function requestRandomWords(string memory projectNameString) external onlyRandomRequesterRole {
         bytes32 projectName = stringToBytes32(projectNameString);
-        require(randomRequests[projectName].requestId == 0, "random number already requested");
+        uint256 blockNumberToBeUsed = randomRequests[projectName].requestId;
 
-        uint256 requestId = block.number;
+        if (blockNumberToBeUsed == 0) {
+            // first run, determine block number to be used
+            randomRequests[projectName].requestTime = uint48(block.timestamp);
+            randomRequests[projectName].requestId = uint48(block.number);
+            randomRequests[projectName].scheduledBlock = uint48(block.number + blocksWait);
+            randomRequests[projectName].scheduledTime = uint48(block.timestamp + (blocksWait * blockTime));
+            // requestId_to_contract[block.number] = projectName;
+            randomRequestsList.push(projectName);
+        } else {
+            require(block.number >= (randomRequests[projectName].requestId + blocksWait), "wait period not over");
+            uint256 randomNumber = block.prevrandao;
+            require(randomNumber != 0, "randomNumber is (still) 0");
+            randomRequests[projectName].randomNumber = randomNumber;
+            randomRequests[projectName].fullFilledTime = uint48(block.timestamp);
+        }
+    }
 
-        randomRequests[projectName].requestTime = uint48(block.timestamp);
-        randomRequests[projectName].requestId = requestId;
-        requestId_to_contract[requestId] = projectName;
-        randomRequestsList.push(projectName);
+    function getScheduledTime(string memory projectNameString) public view returns (uint48) {
+        bytes32 projectName = stringToBytes32(projectNameString);
+        return randomRequests[projectName].scheduledTime;
     }
 
     function getRandomNumber(string memory projectNameString) public view returns (uint256) {
@@ -89,6 +103,18 @@ contract RandomSeed is AccessControl {
     function getScheduleRequest(string memory projectNameString) public view returns (RandomRequest memory) {
         bytes32 projectName = stringToBytes32(projectNameString);
         return randomRequests[projectName];
+    }
+
+    /**
+     * admin functions
+     */
+
+    function setBlocksWait(uint48 _blocksWait) external onlyOwner {
+        blocksWait = _blocksWait;
+    }
+
+    function setBlockTime(uint48 _blockTime) external onlyOwner {
+        blockTime = _blockTime;
     }
 
     /**
