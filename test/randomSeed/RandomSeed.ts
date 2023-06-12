@@ -13,12 +13,13 @@ describe("Unit tests", function () {
     const signers: SignerWithAddress[] = await ethers.getSigners();
     this.signers.admin = signers[0];
     this.signers.user1 = signers[1];
+    this.signers.requester = signers[2];
 
     this.loadFixture = loadFixture;
   });
 
   describe("RandomSeed", function () {
-    beforeEach(async function () {
+    before(async function () {
       const { randomSeed } = await this.loadFixture(deployRandomSeedFixture);
       this.randomSeed = randomSeed;
     });

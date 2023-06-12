@@ -4,6 +4,11 @@
 
 RandomSeed is a contract to request a 256 Bit random number using the `Prevrandao` function for a provided project name.
 
+More information about the `Prevrandao` function can be found here :
+
+- [https://soliditydeveloper.com/prevrandao](https://soliditydeveloper.com/prevrandao)
+- [https://eips.ethereum.org/EIPS/eip-4399](https://eips.ethereum.org/EIPS/eip-4399)
+
 ## Functions
 
 The following functions are available to request and later read a random number :

@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.18;
 
+// import "hardhat/console.sol"; // DEBUG ONLYmport
+
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -22,8 +24,8 @@ contract RandomSeed is AccessControl {
         uint48 requestId; // 6 Bytes (blockNumber at request time)
         uint48 scheduledBlock; //  6 Bytes
         uint48 scheduledTime; //  6 Bytes
-        uint48 fullFilledTime; //  6 Bytes
-        uint48 fullFilledBlock; //  6 Bytes
+        uint48 fulFilledTime; //  6 Bytes
+        uint48 fulFilledBlocknumber; //  6 Bytes
         uint256 randomNumber; // 32 Bytes
     }
 
@@ -71,22 +73,28 @@ contract RandomSeed is AccessControl {
      */
     function requestRandomWords(string memory projectNameString) external onlyRandomRequesterRole {
         bytes32 projectName = stringToBytes32(projectNameString);
-        uint256 blockNumberToBeUsed = randomRequests[projectName].requestId;
+        RandomRequest storage request = randomRequests[projectName];
+
+        require(request.fulFilledBlocknumber == 0, "request already fulfilled");
+        uint256 blockNumberToBeUsed = request.requestId;
+
+        // console.log("contract: block.number =", block.number);
 
         if (blockNumberToBeUsed == 0) {
             // first run, determine block number to be used
-            randomRequests[projectName].requestTime = uint48(block.timestamp);
-            randomRequests[projectName].requestId = uint48(block.number);
-            randomRequests[projectName].scheduledBlock = uint48(block.number + blocksWait);
-            randomRequests[projectName].scheduledTime = uint48(block.timestamp + (blocksWait * blockTime));
+            request.requestTime = uint48(block.timestamp);
+            request.requestId = uint48(block.number);
+            request.scheduledBlock = uint48(block.number + blocksWait);
+            request.scheduledTime = uint48(block.timestamp + (blocksWait * blockTime));
             // requestId_to_contract[block.number] = projectName;
             randomRequestsList.push(projectName);
         } else {
-            require(block.number >= (randomRequests[projectName].requestId + blocksWait), "wait period not over");
+            require(block.number >= (request.scheduledBlock), "wait period not over");
             uint256 randomNumber = block.prevrandao;
             require(randomNumber != 0, "randomNumber is (still) 0");
-            randomRequests[projectName].randomNumber = randomNumber;
-            randomRequests[projectName].fullFilledTime = uint48(block.timestamp);
+            request.randomNumber = randomNumber;
+            request.fulFilledTime = uint48(block.timestamp);
+            request.fulFilledBlocknumber = uint48(block.number);
         }
     }
 
