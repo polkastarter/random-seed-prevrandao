@@ -2,46 +2,7 @@
 
 ## Overview
 
-RandomSeed is a contract to request a 256 Bit random number from a Chainlink VRF oracle for a provided project name.
-
-Chainlink VRF (Verifiable Random Function) is a provably fair and verifiable random number generator (RNG) that enables smart contracts to access random values without compromising security or usability.
-
-https://docs.chain.link/docs/chainlink-vrf
-
-## Setup
-
-In order to be able to request a random number from the Chainling VRF, a subscription for that service has to be funded upfront.
-
-1. During deployment, the contract get a subscriptionId assigned, which can be requested by calling the function `s_subscriptionId()`.
-
-This function can be called using the (auto generated) Web UI of etherscan.
-
-For the contract deployed on the Rinkeby testnet, it look like this :
-
-https://rinkeby.etherscan.io/address/0xcfaac08133da18ba08c67099e97078a7481b4b25#readContract
-
-2. Chainlink provides an management Web UI for the subscriptions :
-
-https://vrf.chain.link
-
-To access the admin interface for a certain subscription, access the link with `subscriptionId` at the end, i.e.:
-
-https://vrf.chain.link/rinkeby/1718
-
-3. To fund the subscription, the [Add Funds] button within the admin interface can be used.
-
-Alternatively, this can be done (programmatically) by :
-
-- sending LINK to contract
-- calling `topUpSubscription(amount)`
-
-One random number request will cost ~ 0.3 ... 0.4 $LINK.
-
-## Related Chainlink documentation
-
-https://www.youtube.com/watch?v=rdJ5d8j1RCg
-
-https://docs.chain.link/docs/get-a-random-number
+RandomSeed is a contract to request a 256 Bit random number using the `Prevrandao` function for a provided project name.
 
 ## Functions
 
@@ -49,13 +10,13 @@ The following functions are available to request and later read a random number 
 
 ### requestRandomWords(string projectNameString)
 
-Request a random number from a Chainlink VRF oracle.
+Request a random number.
 
 Only accounts with `RANDOM_REQUESTER_ROLE` can request a random number.
 
 ### getRandomNumber(string projectNameString) public view returns (uint256)
 
-Using the same parameter as for `requestRandomWords`, about 1-2 minutes later, the 256 Bit random number can be read.
+Using the same parameter as for `requestRandomWords`, about ~TBD minutes later, the 256 Bit random number can be read.
 
 ### getScheduleRequest(string projectNameString) public view returns (RandomRequest)
 
@@ -69,20 +30,17 @@ struct RandomRequest {
   uint256 requestId; // 32 Bytes
   uint256 randomNumber; // 32 Bytes
 }
-
 ```
 
 ## Deployments
 
-### Rinkeby
+| network | address |
+| ------- | ------- |
+| Sepolia | TBD     |
+| Goerli  | TBD     |
 
-v1.0.0
-
-address : 0xcfAac08133da18ba08C67099E97078A7481b4b25
-
-https://rinkeby.etherscan.io/address/0xcfaac08133da18ba08c67099e97078a7481b4b25#writeContract
-
-The result of a random number request, which can be retrieved (after ~ 1-2 minutes) with `getScheduleRequest` looks like this (Example `diogo-project`) :
+The result of a random number request, which can be retrieved (after ~TBD minutes) with `getScheduleRequest` looks like
+this (Example `diogo-project`) :
 
 ```
 tuple :
@@ -94,31 +52,71 @@ tuple :
 
 ```
 
-The last number in the struct is the random number which can by itself requested with `getRandomNumber` (Example `diogo-project`) :
+The last number in the struct is the random number which can by itself requested with `getRandomNumber` (Example
+`diogo-project`) :
 
 `23389299283563471021862844393393757989412126785737161865551291403557344740065`
 
 ## Project Setup
 
-- [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
-- [TypeChain](https://github.com/ethereum-ts/TypeChain): generate TypeScript types for smart contracts
+- [Hardhat](https://github.com/nomiclabs/hardhat): compile, run and test smart contracts
+- [TypeChain](https://github.com/ethereum-ts/TypeChain): generate TypeScript bindings for smart contracts
 - [Ethers](https://github.com/ethers-io/ethers.js/): renowned Ethereum library and wallet implementation
-- [Waffle](https://github.com/EthWorks/Waffle): tooling for writing comprehensive smart contract tests
-- [Solhint](https://github.com/protofire/solhint): linter
+- [Solhint](https://github.com/protofire/solhint): code linter
 - [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
 - [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
+
+## Features
+
+This template builds upon the frameworks and libraries mentioned above, so for details about their specific features,
+please consult their respective documentations.
+
+For example, for Hardhat, you can refer to the [Hardhat Tutorial](https://hardhat.org/tutorial) and the
+[Hardhat Docs](https://hardhat.org/docs). You might be in particular interested in reading the
+[Testing Contracts](https://hardhat.org/tutorial/testing-contracts) section.
+
+### Sensible Defaults
+
+This template comes with sensible default configurations in the following files:
+
+```text
+├── .editorconfig
+├── .eslintignore
+├── .eslintrc.yml
+├── .gitignore
+├── .prettierignore
+├── .prettierrc.yml
+├── .solcover.js
+├── .solhint.json
+└── hardhat.config.ts
+```
+
+### VSCode Integration
+
+This template is IDE agnostic, but for the best user experience, you may want to use it in VSCode alongside Nomic
+Foundation's [Solidity extension](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity).
+
+### GitHub Actions
+
+This template comes with GitHub Actions pre-configured. Your contracts will be linted and tested on every push and pull
+request made to the `main` branch.
+
+Note though that to make this work, you must use your `INFURA_API_KEY` and your `MNEMONIC` as GitHub secrets.
+
+You can edit the CI script in [.github/workflows/ci.yml](./.github/workflows/ci.yml).
 
 ## Usage
 
 ### Pre Requisites
 
-Before running any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an environment
-variable. Follow the example in `.env.example`. If you don't already have a mnemonic, use this [website](https://iancoleman.io/bip39/) to generate one.
+Before being able to run any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an
+environment variable. You can follow the example in `.env.example`. If you don't already have a mnemonic, you can use
+this [website](https://iancoleman.io/bip39/) to generate one.
 
 Then, proceed with installing dependencies:
 
 ```sh
-yarn install
+$ pnpm install
 ```
 
 ### Compile
@@ -126,15 +124,23 @@ yarn install
 Compile the smart contracts with Hardhat:
 
 ```sh
-$ yarn compile
+$ pnpm compile
 ```
 
 ### TypeChain
 
-Compile the smart contracts and generate TypeChain artifacts:
+Compile the smart contracts and generate TypeChain bindings:
 
 ```sh
-$ yarn typechain
+$ pnpm typechain
+```
+
+### Test
+
+Run the tests with Hardhat:
+
+```sh
+$ pnpm test
 ```
 
 ### Lint Solidity
@@ -142,7 +148,7 @@ $ yarn typechain
 Lint the Solidity code:
 
 ```sh
-$ yarn lint:sol
+$ pnpm lint:sol
 ```
 
 ### Lint TypeScript
@@ -150,15 +156,7 @@ $ yarn lint:sol
 Lint the TypeScript code:
 
 ```sh
-$ yarn lint:ts
-```
-
-### Test
-
-Run the Mocha tests:
-
-```sh
-$ yarn test
+$ pnpm lint:ts
 ```
 
 ### Coverage
@@ -166,7 +164,7 @@ $ yarn test
 Generate the code coverage report:
 
 ```sh
-$ yarn coverage
+$ pnpm coverage
 ```
 
 ### Report Gas
@@ -174,7 +172,7 @@ $ yarn coverage
 See the gas usage per unit test and average gas per method call:
 
 ```sh
-$ REPORT_GAS=true yarn test
+$ REPORT_GAS=true pnpm test
 ```
 
 ### Clean
@@ -182,41 +180,67 @@ $ REPORT_GAS=true yarn test
 Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
 
 ```sh
-$ yarn clean
+$ pnpm clean
 ```
 
 ### Deploy
 
-## Deployment
+Deploy the contracts to Hardhat Network:
 
-### Deployment with Verification
-
-In `package.json` file, we have the deploy script defined.
-We can pass `network` argument as defined inside hardhat config. Before running the script, we need to set proper env vars as stated in the .env.sample file.
-
-For `rinkeby`: `yarn run deploy --network rinkeby`
-
-For `mainnet`: `yarn run deploy --network mainnet`
-
-It will automatically verify on etherscan as well.
-
-### Deploy contract via CLI providing a private key
-
-```
-PRIVATE_KEY=0xe15... yarn run deploy --network mainnet
+```sh
+$ pnpm deploy:contracts"
 ```
 
-## Syntax Highlighting
+### Tasks
 
-If you use VSCode, you can enjoy syntax highlighting for your Solidity code via the
-[vscode-solidity](https://github.com/juanfranblanco/vscode-solidity) extension. The recommended approach to set the
-compiler version is to add the following fields to your VSCode user settings:
+#### Deploy Greeter
 
-```json
-{
-  "solidity.compileUsingRemoteVersion": "v0.8.4+commit.c7e474f2",
-  "solidity.defaultCompiler": "remote"
-}
+Deploy a new instance of the Greeter contract via a task:
+
+```sh
+$ pnpm task:deployGreeter --network ganache --greeting "Bonjour, le monde!"
 ```
 
-Where of course `v0.8.4+commit.c7e474f2` can be replaced with any other version.
+#### Set Greeting
+
+Run the `setGreeting` task on the Ganache network:
+
+```sh
+$ pnpm task:setGreeting --network ganache --greeting "Bonjour, le monde!" --account 3
+```
+
+## Tips
+
+### Syntax Highlighting
+
+If you use VSCode, you can get Solidity syntax highlighting with the
+[hardhat-solidity](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) extension.
+
+## Using GitPod
+
+[GitPod](https://www.gitpod.io/) is an open-source developer platform for remote development.
+
+To view the coverage report generated by `pnpm coverage`, just click `Go Live` from the status bar to turn the server
+on/off.
+
+## Local development with Ganache
+
+### Install Ganache
+
+```sh
+$ npm i -g ganache
+```
+
+### Run a Development Blockchain
+
+```sh
+$ ganache -s test
+```
+
+> The `-s test` passes a seed to the local chain and makes it deterministic
+
+Make sure to set the mnemonic in your `.env` file to that of the instance running with Ganache.
+
+## License
+
+This project is licensed under MIT.
