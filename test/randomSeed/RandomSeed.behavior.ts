@@ -11,7 +11,7 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
   const blocksWait = 128;
   const blockTime = 15;
 
-  let scheduledBlock: bigint;
+  let scheduledBlockNumber: bigint;
 
   console.log("projectName =", projectName);
 
@@ -63,7 +63,7 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
 
     const expectedBlockNumber = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(expectedBlockNumber);
-    console.log({ block });
+    // console.log({ block });
 
     // workaround : 'block' is possibly 'null'.ts(18047)
     let block_timestamp: number = 0
@@ -73,9 +73,9 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
 
     expect(randomRequest.requestTime).to.eq(block_timestamp);
     expect(randomRequest.requestId).to.eq(expectedBlockNumber);
-    expect(randomRequest.scheduledBlock).to.eq(expectedBlockNumber + blocksWait);
+    expect(randomRequest.scheduledBlockNumber).to.eq(expectedBlockNumber + blocksWait);
     expect(randomRequest.scheduledTime).to.eq(block_timestamp + (blocksWait * blockTime));
-    scheduledBlock = randomRequest.scheduledBlock;
+    scheduledBlockNumber = randomRequest.scheduledBlockNumber;
   });
 
   it("requester can NOT retrieve random number before scheduled block is reached ", async function () {
@@ -86,9 +86,8 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
   });
 
   it("requester can NOT retrieve random number before scheduled block is reached", async function () {
-    const blockNumber = await getBlockNumber();
     await mineBlocks(blocksWait - 4);
-    expect(await getBlockNumber()).to.eq(scheduledBlock - 2n);
+    expect(await getBlockNumber()).to.eq(scheduledBlockNumber - 2n);
     await expect(this.randomSeed.connect(this.signers.requester).requestRandomWords(projectName)).to.be.revertedWith('wait period not over');
 
     const randomNumber = await this.randomSeed.getRandomNumber(projectName);

@@ -22,10 +22,10 @@ contract RandomSeed is AccessControl {
         // uint16 chainId;     //  2 Bytes
         uint48 requestTime; //  6 Bytes
         uint48 requestId; // 6 Bytes (blockNumber at request time)
-        uint48 scheduledBlock; //  6 Bytes
+        uint48 scheduledBlockNumber; //  6 Bytes
         uint48 scheduledTime; //  6 Bytes
         uint48 fulFilledTime; //  6 Bytes
-        uint48 fulFilledBlocknumber; //  6 Bytes
+        uint48 fulFilledBlockNumber; //  6 Bytes
         uint256 randomNumber; // 32 Bytes
     }
 
@@ -75,7 +75,7 @@ contract RandomSeed is AccessControl {
         bytes32 projectName = stringToBytes32(projectNameString);
         RandomRequest storage request = randomRequests[projectName];
 
-        require(request.fulFilledBlocknumber == 0, "request already fulfilled");
+        require(request.fulFilledBlockNumber == 0, "request already fulfilled");
 
         // console.log("contract: block.number =", block.number);
 
@@ -83,17 +83,17 @@ contract RandomSeed is AccessControl {
             // first run, determine block number to be used
             request.requestTime = uint48(block.timestamp);
             request.requestId = uint48(block.number);
-            request.scheduledBlock = uint48(block.number + blocksWait);
+            request.scheduledBlockNumber = uint48(block.number + blocksWait);
             request.scheduledTime = uint48(block.timestamp + (blocksWait * blockTime));
             // requestId_to_contract[block.number] = projectName;
             randomRequestsList.push(projectName);
         } else {
-            require(block.number >= (request.scheduledBlock), "wait period not over");
+            require(block.number >= (request.scheduledBlockNumber), "wait period not over");
             uint256 randomNumber = block.prevrandao;
             require(randomNumber != 0, "randomNumber is (still) 0");
             request.randomNumber = randomNumber;
             request.fulFilledTime = uint48(block.timestamp);
-            request.fulFilledBlocknumber = uint48(block.number);
+            request.fulFilledBlockNumber = uint48(block.number);
         }
     }
 
