@@ -1,5 +1,4 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { ethers } from "hardhat";
 
 import type { Signers } from "../types";
@@ -10,7 +9,7 @@ describe("Unit tests", function () {
   before(async function () {
     this.signers = {} as Signers;
 
-    const signers: SignerWithAddress[] = await ethers.getSigners();
+    const signers = await ethers.getSigners();
     this.signers.admin = signers[0];
     this.signers.user1 = signers[1];
     this.signers.requester = signers[2];
@@ -24,8 +23,8 @@ describe("Unit tests", function () {
       this.randomSeed = randomSeed;
     });
 
-    shouldBehaveLikeRandomSeed();
-    shouldBehaveLikeRandomSeed();
+    shouldBehaveLikeRandomSeed("Project-" + new Date().getTime()); // first run
+    shouldBehaveLikeRandomSeed("Project-" + new Date().getTime()); // one more time
   });
 
 });

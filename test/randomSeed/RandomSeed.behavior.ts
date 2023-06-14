@@ -6,14 +6,18 @@ import {
   timePeriod, getTimestamp, moveTime, waitTime, setTime, consoleLog_timestamp
 } from "../blockTimeHelpers";
 
-export function shouldBehaveLikeRandomSeed(): void {
+export function shouldBehaveLikeRandomSeed(projectName: string): void {
 
-  const projectName: string = "Project-" + new Date().getTime();
-  console.log("projectName =", projectName);
   const blocksWait = 128;
   const blockTime = 15;
 
-  let scheduledBlock: number;
+  let scheduledBlock: bigint;
+
+  console.log("projectName =", projectName);
+
+  it("should have a project name", async function () {
+    expect(projectName.length > 0);
+  });
 
   it("not-owner should NOT be able to update blocksWait", async function () {
     await expect(this.randomSeed.connect(this.signers.user1).setBlocksWait(1)).to.be.reverted;
@@ -60,10 +64,17 @@ export function shouldBehaveLikeRandomSeed(): void {
     const expectedBlockNumber = await ethers.provider.getBlockNumber();
     const block = await ethers.provider.getBlock(expectedBlockNumber);
     console.log({ block });
-    expect(randomRequest.requestTime).to.eq(block.timestamp);
+
+    // workaround : 'block' is possibly 'null'.ts(18047)
+    let block_timestamp: number = 0
+    if (block != null) {
+      block_timestamp = block.timestamp;
+    }
+
+    expect(randomRequest.requestTime).to.eq(block_timestamp);
     expect(randomRequest.requestId).to.eq(expectedBlockNumber);
     expect(randomRequest.scheduledBlock).to.eq(expectedBlockNumber + blocksWait);
-    expect(randomRequest.scheduledTime).to.eq(block.timestamp + (blocksWait * blockTime));
+    expect(randomRequest.scheduledTime).to.eq(block_timestamp + (blocksWait * blockTime));
     scheduledBlock = randomRequest.scheduledBlock;
   });
 
@@ -77,7 +88,7 @@ export function shouldBehaveLikeRandomSeed(): void {
   it("requester can NOT retrieve random number before scheduled block is reached", async function () {
     const blockNumber = await getBlockNumber();
     await mineBlocks(blocksWait - 4);
-    expect(await getBlockNumber()).to.eq(scheduledBlock - 2);
+    expect(await getBlockNumber()).to.eq(scheduledBlock - 2n);
     await expect(this.randomSeed.connect(this.signers.requester).requestRandomWords(projectName)).to.be.revertedWith('wait period not over');
 
     const randomNumber = await this.randomSeed.getRandomNumber(projectName);

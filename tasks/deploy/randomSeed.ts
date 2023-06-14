@@ -2,8 +2,8 @@ import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { task } from "hardhat/config";
 import type { TaskArguments } from "hardhat/types";
 
-import type { RandomSeed } from "../../src/types/RandomSeed";
-import type { RandomSeed__factory } from "../../src/types/factories/RandomSeed__factory";
+import type { RandomSeed } from "../../types/contracts/RandomSeed";
+import type { RandomSeed__factory } from "../../types/factories/contracts/RandomSeed__factory";
 
 import "@nomiclabs/hardhat-etherscan";
 import { hardhatArguments } from "hardhat";
@@ -41,9 +41,9 @@ task("deploy:RandomSeed")
       while (currentBlockNumber - deployBlockNumber < CONFIRMATION_BLOCKS_WAIT) {
         console.log(
           currentBlockNumber +
-            " - need to wait " +
-            (deployBlockNumber + CONFIRMATION_BLOCKS_WAIT - currentBlockNumber) +
-            " more blocks ...",
+          " - need to wait " +
+          (deployBlockNumber + CONFIRMATION_BLOCKS_WAIT - currentBlockNumber) +
+          " more blocks ...",
         );
         await new Promise(f => setTimeout(f, 10000));
         currentBlockNumber = await ethers.provider.getBlockNumber();
