@@ -75,6 +75,10 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
     expect(randomRequest.requestId).to.eq(expectedBlockNumber);
     expect(randomRequest.scheduledBlockNumber).to.eq(expectedBlockNumber + blocksWait);
     expect(randomRequest.scheduledTime).to.eq(block_timestamp + (blocksWait * blockTime));
+
+    const scheduledTime: number = Number(await this.randomSeed.getScheduledTime(projectName));
+    expect(randomRequest.scheduledTime).to.eq(scheduledTime);
+
     scheduledBlockNumber = randomRequest.scheduledBlockNumber;
   });
 
