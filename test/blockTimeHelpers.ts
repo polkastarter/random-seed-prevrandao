@@ -65,15 +65,19 @@ export function logStringTime(text: string, t: number) {
  * @dev helper function to get block.timestamp from hardhat provider
  * @returns block.timestamp in unix epoch time (seconds)
  */
-export const blockTimestamp = async (): Promise<number> => {
+export const getBlockTimestamp = async (): Promise<number> => {
     const blockNumber = await ethers.provider.getBlockNumber();
-    return (await ethers.provider._getBlock(blockNumber)).timestamp;
+    const block = await ethers.provider.getBlock(blockNumber);
+    if (block != null) {
+        return block.timestamp;
+    } else
+        return 0;
 };
 
 export const getTimestamp = async (): Promise<number> => {
     let currentTime: number;
     if (network.name == "hardhat") {
-        currentTime = await blockTimestamp();
+        currentTime = await getBlockTimestamp();
     } else {
         currentTime = Math.floor(Date.now() / 1000);
     }
@@ -89,7 +93,7 @@ export const moveTime = async (timeAmount: number): Promise<number> => {
     await ethers.provider.send("evm_increaseTime", [timeAmount]);
     await ethers.provider.send("evm_mine", []);
     const blockNumber = await ethers.provider.getBlockNumber();
-    const timeNow = (await ethers.provider._getBlock(blockNumber)).timestamp;
+    const timeNow = await getBlockTimestamp();
     console.log("moveTime : timeNow =", timeNow);
     console.log("----------------------------------------------------------------------------");
     return timeNow;

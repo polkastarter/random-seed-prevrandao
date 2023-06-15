@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 import {
-  getBlockNumber, mineBlock, mineBlocks, mineBlocksUpTo,
+  getBlockNumber, mineBlock, mineBlocks, mineBlocksUpTo, getBlockTimestamp,
   timePeriod, getTimestamp, moveTime, waitTime, setTime, consoleLog_timestamp
 } from "../blockTimeHelpers";
 
@@ -62,14 +62,7 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
     console.log(randomRequest);
 
     const expectedBlockNumber = await ethers.provider.getBlockNumber();
-    const block = await ethers.provider.getBlock(expectedBlockNumber);
-    // console.log({ block });
-
-    // workaround : 'block' is possibly 'null'.ts(18047)
-    let block_timestamp: number = 0
-    if (block != null) {
-      block_timestamp = block.timestamp;
-    }
+    const block_timestamp: number = await getBlockTimestamp();
 
     expect(randomRequest.requestTime).to.eq(block_timestamp);
     expect(randomRequest.requestId).to.eq(expectedBlockNumber);
