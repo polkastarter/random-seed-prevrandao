@@ -9,6 +9,14 @@ const BLOCKTIME = 15; // average Ethereum BlockTime in seconds
 const PERIOD_HARDHAT = 24 * 60 * 60; // 1 day (simulated time periods) on hardhat
 const PERIOD_BLOCKCHAIN = 60; // 1 minutes on "real" blockchains
 
+export function absDiff(a: bigint | number, b: bigint | number): bigint {
+    if (a > b) {
+        return BigInt(a) - BigInt(b);
+    } else {
+        return BigInt(b) - BigInt(a);
+    }
+}
+
 /**
  * Block helper functions
  */
@@ -66,8 +74,8 @@ export function logStringTime(text: string, t: number) {
  * @returns block.timestamp in unix epoch time (seconds)
  */
 export const getBlockTimestamp = async (): Promise<number> => {
-    const blockNumber = await ethers.provider.getBlockNumber();
-    const block = await ethers.provider.getBlock(blockNumber);
+    const block = await ethers.provider.getBlock("latest");
+
     if (block != null) {
         return block.timestamp;
     } else

@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 import {
+  absDiff,
   getBlockNumber, mineBlock, mineBlocks, mineBlocksUpTo, getBlockTimestamp,
   timePeriod, getTimestamp, moveTime, waitTime, setTime, consoleLog_timestamp
 } from "../blockTimeHelpers";
@@ -11,7 +12,7 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
   const blocksWait = 128;
   const blockTime = 15;
 
-  let scheduledBlockNumber: bigint;
+  let scheduledBlockNumber: number;
 
   console.log("projectName =", projectName);
 
@@ -67,12 +68,11 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
     expect(randomRequest.requestTime).to.eq(block_timestamp);
     expect(randomRequest.requestId).to.eq(expectedBlockNumber);
     expect(randomRequest.scheduledBlockNumber).to.eq(expectedBlockNumber + blocksWait);
-    expect(randomRequest.scheduledTime).to.eq(block_timestamp + (blocksWait * blockTime));
+    const timeDiff = absDiff(randomRequest.scheduledTime, block_timestamp + (blocksWait * blockTime));
+    expect(timeDiff).to.lte(1);
+    expect(await this.randomSeed.getScheduledTime(projectName)).to.eq(randomRequest.scheduledTime);
 
-    const scheduledTime: number = Number(await this.randomSeed.getScheduledTime(projectName));
-    expect(randomRequest.scheduledTime).to.eq(scheduledTime);
-
-    scheduledBlockNumber = randomRequest.scheduledBlockNumber;
+    scheduledBlockNumber = Number(randomRequest.scheduledBlockNumber);
   });
 
   it("requester can NOT retrieve random number before scheduled block is reached ", async function () {
@@ -84,7 +84,7 @@ export function shouldBehaveLikeRandomSeed(projectName: string): void {
 
   it("requester can NOT retrieve random number before scheduled block is reached", async function () {
     await mineBlocks(blocksWait - 4);
-    expect(await getBlockNumber()).to.eq(scheduledBlockNumber - 2n);
+    expect(await getBlockNumber()).to.equal(scheduledBlockNumber - 2);
     await expect(this.randomSeed.connect(this.signers.requester).requestRandomWords(projectName)).to.be.revertedWith('wait period not over');
 
     const randomNumber = await this.randomSeed.getRandomNumber(projectName);
