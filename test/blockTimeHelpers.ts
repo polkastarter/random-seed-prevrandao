@@ -66,8 +66,7 @@ export function logStringTime(text: string, t: number) {
  * @returns block.timestamp in unix epoch time (seconds)
  */
 export const getBlockTimestamp = async (): Promise<number> => {
-    const blockNumber = await ethers.provider.getBlockNumber();
-    const block = await ethers.provider.getBlock(blockNumber);
+    const block = await ethers.provider.getBlock("latest");
     if (block != null) {
         return block.timestamp;
     } else
