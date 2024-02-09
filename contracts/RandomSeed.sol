@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 
 // import "hardhat/console.sol"; // DEBUG ONLYmport
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol"; // v5
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract RandomSeed is AccessControl {
@@ -48,8 +48,8 @@ contract RandomSeed is AccessControl {
      */
 
     constructor() {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(RANDOM_REQUESTER_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(RANDOM_REQUESTER_ROLE, msg.sender);
     }
 
     /**
